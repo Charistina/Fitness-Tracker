@@ -23,7 +23,8 @@ def get_theme_vars(theme: str) -> Dict[str, str]:
             'secondary-bg': '#F8F9FA',
             'tertiary-bg': '#E9ECEF',
             'text-color': '#212529',
-            'label-color': '#495057',
+            'label-color': '#212529',  # Darker for better contrast
+            'text-muted': '#6c757d',
             'accent-color': '#0D6EFD',
             'border-color': '#CED4DA',
             'card-bg': '#FFFFFF',
@@ -126,26 +127,41 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
         color: var(--text-color) !important;
     }}
     
-    /* Sidebar */
+    /* Sidebar - Base Styles */
     .stSidebar {{
         background-color: var(--secondary-bg) !important;
-        padding: 1.5rem;
-        border-right: 1px solid var(--border-color);
+        color: var(--text-color) !important;
+        padding: 1.5rem !important;
+        border-right: 1px solid var(--border-color) !important;
     }}
     
-    /* Fix for sidebar text color */
-    .stSidebar .stMarkdown, 
-    .stSidebar .stMarkdown p, 
-    .stSidebar .stMarkdown h1, 
-    .stSidebar .stMarkdown h2, 
+    /* Sidebar Text - Catch All */
+    .stSidebar *:not(button):not(input):not(select):not(textarea):not(svg):not(path) {{
+        color: var(--text-color) !important;
+    }}
+    
+    /* Sidebar Headers */
+    .stSidebar h1,
+    .stSidebar h2,
+    .stSidebar h3,
+    .stSidebar h4,
+    .stSidebar h5,
+    .stSidebar h6,
+    .stSidebar .stMarkdown h1,
+    .stSidebar .stMarkdown h2,
     .stSidebar .stMarkdown h3,
     .stSidebar .stMarkdown h4,
     .stSidebar .stMarkdown h5,
-    .stSidebar .stMarkdown h6,
-    .stSidebar .stMarkdown label,
+    .stSidebar .stMarkdown h6 {{
+        color: var(--text-color) !important;
+    }}
+    
+    /* Sidebar Form Elements */
+    .stSidebar label,
+    .stSidebar .stMarkdown,
+    .stSidebar .stMarkdown p,
     .stSidebar .stMarkdown div,
     .stSidebar .stMarkdown span,
-    .stSidebar label,
     .stSidebar .stRadio > label,
     .stSidebar .stCheckbox > label,
     .stSidebar .stSelectbox > label,
@@ -153,7 +169,36 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
     .stSidebar .stTextInput > label,
     .stSidebar .stTextArea > label,
     .stSidebar .stDateInput > label,
-    .stSidebar .stTimeInput > label {{
+    .stSidebar .stTimeInput > label,
+    .stSidebar .stRadio,
+    .stSidebar .stCheckbox,
+    .stSidebar .stSelectbox,
+    .stSidebar .stNumberInput,
+    .stSidebar .stTextInput,
+    .stSidebar .stTextArea,
+    .stSidebar .stDateInput,
+    .stSidebar .stTimeInput {{
+        color: var(--text-color) !important;
+    }}
+    
+    /* Fix for radio and checkbox labels specifically */
+    .stSidebar .stRadio label,
+    .stSidebar .stCheckbox label {{
+        color: var(--text-color) !important;
+        font-weight: normal !important;
+    }}
+    
+    /* Fix for input placeholders */
+    .stSidebar input::placeholder,
+    .stSidebar textarea::placeholder {{
+        color: var(--text-muted) !important;
+        opacity: 0.7 !important;
+    }}
+    
+    /* Fix for input values */
+    .stSidebar input,
+    .stSidebar select,
+    .stSidebar textarea {{
         color: var(--text-color) !important;
     }}
     
