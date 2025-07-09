@@ -248,21 +248,68 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
     .stTooltip {{
         background-color: var(--card-bg) !important;
         color: var(--text-color) !important;
-        border: 1px solid var(--border-color) !important;
     }}
     
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {{
-        background-color: var(--secondary-bg);
-        border-radius: 8px;
-    }}
-    .stTabs [data-baseweb="tab"] {{
+    /* Main Content Text - Global */
+    .stApp,
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+    .stMarkdown, .stMarkdown p, .stMarkdown div, .stMarkdown span,
+    .stAlert, .stAlert p, .stAlert div,
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4,
+    .stMarkdown h5, .stMarkdown h6 {
         color: var(--text-color) !important;
-    }}
-    .stTabs [aria-selected="true"] {{
+    }
+    
+    /* BMI and Calorie Results - Specific Fixes */
+    .stMetric, .stMetricLabel, .stMetricValue, .stMetricDelta,
+    .stMetricLabel p, .stMetricValue p, .stMetricDelta p,
+    .stMetricLabel div, .stMetricValue div, .stMetricDelta div {
+        color: var(--text-color) !important;
+    }
+    
+    /* Cards and Containers */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: var(--secondary-bg) !important;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre;
+        background-color: var(--tertiary-bg);
+        border-radius: 4px 4px 0 0;
+        gap: 1px;
+        padding: 10px 20px;
+        margin-right: 4px;
+        margin-left: 4px;
+        color: var(--text-color) !important;
+    }
+    
+    .stTabs [aria-selected="true"] {
         background-color: var(--accent-color) !important;
         color: white !important;
-    }}
+    }
+    
+    /* Result Sections - Specific Elements */
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
+    .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        color: var(--text-color) !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Metrics and Results Containers */
+    .stAlert, .stAlert p, .stAlert div,
+    .stMarkdown, .stMarkdown p, .stMarkdown div,
+    .stDataFrame, .stDataFrame th, .stDataFrame td,
+    .element-container, .stMarkdownContainer {
+        color: var(--text-color) !important;
+    }
+    
+    /* Fix for any remaining text elements */
+    .stApp *:not(button):not(input):not(select):not(textarea):not(svg):not(path) {
+        color: var(--text-color) !important;
+    }
     </style>
     """
 
