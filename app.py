@@ -4,20 +4,33 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import time
-from food_recommendations import get_food_recommendations
-from theme_handler import apply_theme
+from ml_food_recommender import MLFoodRecommender
+from theme_handler import init_session_state, apply_theme
 import warnings
 
 warnings.filterwarnings('ignore')
 
+# Initialize session state and apply theme
+init_session_state()
+
+# Set page config after theme initialization
 st.set_page_config(
     page_title="Personal Fitness Tracker", 
     layout="wide",
     page_icon="🏋️"
 )
 
-theme = st.sidebar.radio("Select Theme:", ["Light Mode", "Dark Mode"])
-apply_theme(theme)
+# Theme selector in sidebar
+with st.sidebar:
+    st.subheader("Appearance")
+    theme = st.radio(
+        "Theme",
+        ["Light Mode", "Dark Mode"],
+        index=0 if st.session_state.get('theme', 'Light Mode') == 'Light Mode' else 1,
+        key="theme_selector"
+    )
+    apply_theme(theme)
+    st.sidebar.markdown("---")  # Add separator
 
 # Main Header
 with st.container():
@@ -30,20 +43,44 @@ with st.container():
 
 st.sidebar.header("User Input Parameters")
 
-@st.cache_resource
+@st.cache_resource(ttl=3600)  # Cache for 1 hour
 def load_model():
-    calories = pd.read_csv("calories.csv")
-    exercise = pd.read_csv("exercise.csv")
-    exercise_df = exercise.merge(calories, on="User_ID").drop(columns="User_ID")
-    exercise_df["BMI"] = round(exercise_df["Weight"] / ((exercise_df["Height"] / 100) ** 2), 2)
-    exercise_df["Gender"] = exercise_df["Gender"].map({"Male": 1, "Female": 0})
-    exercise_df = pd.get_dummies(exercise_df, columns=["Activity_Level"], drop_first=True)
-    
-    X_train = exercise_df.drop("Calories", axis=1)
-    y_train = exercise_df["Calories"]
-    model = RandomForestRegressor(n_estimators=1000, max_features=3, max_depth=6)
-    model.fit(X_train, y_train)
-    return model
+    try:
+        # Load data with error handling
+        calories = pd.read_csv("calories.csv")
+        exercise = pd.read_csv("exercise.csv")
+        
+        # Basic data validation
+        if len(calories) == 0 or len(exercise) == 0:
+            raise ValueError("One or more data files are empty")
+            
+        # Merge and preprocess
+        exercise_df = exercise.merge(calories, on="User_ID").drop(columns="User_ID")
+        exercise_df["BMI"] = round(exercise_df["Weight"] / ((exercise_df["Height"] / 100) ** 2), 2)
+        exercise_df["Gender"] = exercise_df["Gender"].map({"Male": 1, "Female": 0})
+        exercise_df = pd.get_dummies(exercise_df, columns=["Activity_Level"], drop_first=True)
+        
+        # Train model
+        X_train = exercise_df.drop("Calories", axis=1)
+        y_train = exercise_df["Calories"]
+        
+        # Use a smaller model for faster predictions
+        model = RandomForestRegressor(
+            n_estimators=200,  # Reduced from 1000 for faster training
+            max_features=3,
+            max_depth=6,
+            n_jobs=-1,  # Use all CPU cores
+            random_state=42
+        )
+        model.fit(X_train, y_train)
+        return model
+        
+    except FileNotFoundError as e:
+        st.error(f"Error loading data files: {e}")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error initializing model: {e}")
+        st.stop()
 
 def validate_inputs(age, height, weight, duration):
     if height < 100 or height > 250:
@@ -105,7 +142,6 @@ def user_input_features():
               - Overweight: 25-29.9
               - Obese: ≥30
             - For accurate results, fill all available fields
-            - Wearable tracker data improves accuracy
             """)
         
         submit = st.button("Submit", type="primary")
@@ -170,54 +206,73 @@ if submit:
         
      
         if food_suggestions:
-            with st.expander("🍽️ Food Recommendations", expanded=True):
-                recommendations = get_food_recommendations(bmi_category, df["Activity_Level"].values[0], diet_preference)
+            with st.expander("🍽️ Personalized Food Recommendations", expanded=True):
+                # Initialize the ML food recommender
+                recommender = MLFoodRecommender()
                 
-                tab1, tab2, tab3, tab4 = st.tabs(["BMI Analysis", "Activity", "Diet", "Meal Plan"])
+                # Get recommendations
+                recommendations = recommender.get_recommendations(
+                    bmi_category=bmi_category,
+                    activity_level=activity_level,
+                    diet_preference=diet_preference if diet_preference else 'No preference',
+                    n_recommendations=5
+                )
                 
-                with tab1:  
-                    st.write("**Focus Area:**")
-                    st.info(recommendations["BMI Analysis"]["Focus Area"])
-                    st.write("**Recommended Foods:**")
-                    st.info(", ".join(recommendations["BMI Analysis"]["Recommended Foods"]))
-                    st.write("**Nutrition Tips:**")
-                    st.info(recommendations["BMI Analysis"]["Nutrition Tips"])
+                st.write("### 🎯 Based on your profile:")
+                cols = st.columns(3)
+                with cols[0]:
+                    st.metric("BMI Category", bmi_category)
+                with cols[1]:
+                    st.metric("Activity Level", activity_level)
+                with cols[2]:
+                    st.metric("Diet Preference", diet_preference if diet_preference else 'No preference')
                 
-                with tab2:  
-                    st.write("**Pre-Workout:**")
-                    st.info(recommendations["Activity Recommendations"]["Pre-Workout"])
-                    st.write("**Post-Workout:**")
-                    st.info(recommendations["Activity Recommendations"]["Post-Workout"])
-                    st.write("**General Advice:**")
-                    st.info(recommendations["Activity Recommendations"]["General Advice"])
-                    st.write("**Hydration Guide:**")
-                    st.info(recommendations["Activity Recommendations"]["Hydration Guide"])
+                st.markdown("---")
+                st.subheader("🍽️ Recommended Meals")
                 
-                with tab3:  
-                    if "proteins" in recommendations["Diet-Specific Guidance"]:
-                        st.write("**Protein Sources:**")
-                        st.info(", ".join(recommendations["Diet-Specific Guidance"]["proteins"]))
-                    if "meals" in recommendations["Diet-Specific Guidance"]:
-                        st.write("**Meal Ideas:**")
-                        st.info("\n".join([f"- {meal}" for meal in recommendations["Diet-Specific Guidance"]["meals"]]))
-                    if "advice" in recommendations["Diet-Specific Guidance"]:
-                        st.info(recommendations["Diet-Specific Guidance"]["advice"])
-                
-                with tab4:  
-                    st.write("**Breakfast:**")
-                    st.info(recommendations["Meal Timing Suggestions"]["Breakfast"])
-                    st.write("**Lunch:**")
-                    st.info(recommendations["Meal Timing Suggestions"]["Lunch"])
-                    st.write("**Dinner:**")
-                    st.info(recommendations["Meal Timing Suggestions"]["Dinner"])
-                    st.write("**Snacks:**")
-                    st.info(recommendations["Meal Timing Suggestions"]["Snacks"])
+                # Display recommendations in a grid
+                for i, rec in enumerate(recommendations['recommendations'], 1):
+                    with st.container():
+                        col1, col2 = st.columns([2, 3])
+                        with col1:
+                            st.markdown(f"#### {i}. {rec['food'].title()}")
+                            st.caption(f"**Meal Type:** {rec['meal_type'].title()}")
+                        
+                        with col2:
+                            # Display nutrition information
+                            nut = rec['nutrition']
+                            st.markdown("**Nutrition per serving:**")
+                            nut_cols = st.columns(4)
+                            nut_cols[0].metric("Calories", f"{nut['calories']}")
+                            nut_cols[1].metric("Protein", nut['protein'])
+                            nut_cols[2].metric("Carbs", nut['carbs'])
+                            nut_cols[3].metric("Fat", nut['fat'])
                     
-                    st.write("**Sample Indian Meals:**")
-                    st.info("\n".join([f"- {meal}" for meal in recommendations["Sample Meal Plans"]["Indian"]]))
-                    
-                    st.write("**Additional Tips:**")
-                    st.info("\n".join([f"- {tip}" for tip in recommendations["Additional Tips"]]))
+                    if i < len(recommendations['recommendations']):
+                        st.markdown("---")
+                
+                # Add some nutrition tips based on BMI
+                st.markdown("---")
+                st.subheader("💡 Nutrition Tips")
+                
+                if bmi_category.lower() in ['underweight']:
+                    st.info("""
+                    - Focus on calorie-dense, nutrient-rich foods like nuts, seeds, and healthy fats
+                    - Include protein with every meal to support muscle growth
+                    - Consider smaller, more frequent meals if you struggle with appetite
+                    """)
+                elif bmi_category.lower() in ['overweight', 'obese']:
+                    st.info("""
+                    - Focus on high-fiber, low-calorie foods to feel full longer
+                    - Include lean protein with every meal to preserve muscle mass
+                    - Stay hydrated and watch portion sizes
+                    """)
+                else:
+                    st.info("""
+                    - Maintain a balanced diet with a variety of foods
+                    - Stay consistent with your healthy eating patterns
+                    - Listen to your body's hunger and fullness cues
+                    """)
 
 # Footer
 st.markdown("---")
@@ -227,10 +282,13 @@ footer = """
     text-align: center;
     padding: 10px;
     margin-top: 2rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 0.9em;
 }
 </style>
 <div class="footer">
-<p>Developed by Christina | <a href="#" style="color: var(--accent-color);">Privacy Policy</a></p>
+<p>Personal Fitness Tracker v1.0</p>
 </div>
 """
 st.markdown(footer, unsafe_allow_html=True)

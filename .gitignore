@@ -1,0 +1,9 @@
+ProjectPPTInternship.pdf
+PersonalFitnessTracker_AICTEInternshipReport2025_Christina.pdf
+AICTE_Internship_2024_Project_Report_Template_2.docx
+
+.venv/
+venv/
+
+__pycache__/
+*.pyc
