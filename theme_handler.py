@@ -20,12 +20,17 @@ def get_theme_vars(theme: str) -> Dict[str, str]:
         },
         'Light Mode': {
             'primary-bg': '#FFFFFF',
-            'secondary-bg': '#F5F5F5',
-            'tertiary-bg': '#E0E0E0',
-            'text-color': '#000000',
-            'accent-color': '#2196F3',
-            'border-color': '#DDDDDD',
-            'card-bg': '#FAFAFA',
+            'secondary-bg': '#F8F9FA',
+            'tertiary-bg': '#E9ECEF',
+            'text-color': '#212529',
+            'accent-color': '#0D6EFD',
+            'border-color': '#CED4DA',
+            'card-bg': '#FFFFFF',
+            'text-muted': '#6C757D',
+            'success': '#198754',
+            'warning': '#FFC107',
+            'danger': '#DC3545',
+            'info': '#0DCAF0'
         }
     }
     return themes.get(theme, themes['Light Mode'])
@@ -42,6 +47,11 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
         --accent-color: {theme_vars['accent-color']};
         --border-color: {theme_vars['border-color']};
         --card-bg: {theme_vars['card-bg']};
+        --text-muted: {theme_vars.get('text-muted', '#6C757D')};
+        --success: {theme_vars.get('success', '#198754')};
+        --warning: {theme_vars.get('warning', '#FFC107')};
+        --danger: {theme_vars.get('danger', '#DC3545')};
+        --info: {theme_vars.get('info', '#0DCAF0')};
     }}
     
     /* Base styles */
@@ -57,12 +67,36 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
     }}
     
     /* Input elements */
-    .stTextInput, .stNumberInput, .stSelectbox, 
-    .stCheckbox, .stTextArea, .stDateInput {{
-        background-color: var(--secondary-bg);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
+    .stTextInput input, .stNumberInput input, .stSelectbox select, 
+    .stTextArea textarea, .stDateInput input {{
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 4px !important;
+    }}
+    
+    /* Fix for input text color */
+    .stTextInput input::placeholder, .stNumberInput input::placeholder,
+    .stTextArea textarea::placeholder {{
+        color: var(--text-muted) !important;
+        opacity: 0.7 !important;
+    }}
+    
+    /* Select box dropdown */
+    .stSelectbox div[data-baseweb="select"] {{
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+    }}
+    
+    /* Checkbox and radio labels */
+    .stCheckbox label, .stRadio label, .stCheckbox, .stRadio {{
+        color: var(--text-color) !important;
+    }}
+    
+    /* Fix for checkbox and radio button colors */
+    .stCheckbox > label > div:first-child > div {{
+        background-color: var(--primary-bg) !important;
+        border-color: var(--border-color) !important;
     }}
     
     /* Buttons */
@@ -90,21 +124,23 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
         border-right: 1px solid var(--border-color);
     }}
     
-    /* Cards and expanders */
-    .stExpander {{
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        margin-bottom: 1rem;
-    }}
-    .stExpander .streamlit-expanderHeader {{
-        background-color: var(--tertiary-bg);
-        color: var(--text-color);
-        border-radius: 8px 8px 0 0;
+    /* Fix for sidebar text color */
+    .stSidebar .stMarkdown, 
+    .stSidebar .stMarkdown p, 
+    .stSidebar .stMarkdown h1, 
+    .stSidebar .stMarkdown h2, 
+    .stSidebar .stMarkdown h3 {{
+        color: var(--text-color) !important;
     }}
     
-    /* Metrics */
-    .stMetric {{
+    /* Fix for sidebar select boxes */
+    .stSidebar .stSelectbox select {{
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+    }}
+    
+    /* Cards and expanders */
+    .stExpander {{
         background-color: var(--card-bg);
         border: 1px solid var(--border-color);
         border-radius: 8px;
@@ -114,6 +150,36 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
     /* Progress bars */
     .stProgress > div > div {{
         background-color: var(--accent-color) !important;
+    }}
+    
+    /* Fix for success/warning/error messages */
+    .stAlert {{
+        background-color: var(--card-bg) !important;
+        border-left: 3px solid var(--accent-color) !important;
+    }}
+    
+    .stAlert .markdown-text-container {{
+        color: var(--text-color) !important;
+    }}
+    
+    /* Fix for expander content */
+    .stExpander .streamlit-expanderContent {{
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+    }}
+    
+    /* Fix for metric cards */
+    .stMetric {{
+        background-color: var(--card-bg) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
+    }}
+    
+    /* Fix for tooltips */
+    .stTooltip {{
+        background-color: var(--card-bg) !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
     }}
     
     /* Tabs */
