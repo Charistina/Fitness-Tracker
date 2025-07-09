@@ -210,10 +210,20 @@ if submit:
                 # Initialize the ML food recommender
                 recommender = MLFoodRecommender()
                 
-                # Get recommendations
+                # Get the selected activity level from the input form
+                user_activity_level = df['Activity_Level'].values[0]
+                
+                # Map the activity level to a more descriptive string
+                activity_mapping = {
+                    'No activity': 'sedentary',
+                    'Light walking': 'light',
+                    'Regular exercise': 'moderate'
+                }
+                activity_level_str = activity_mapping.get(user_activity_level, 'moderate')
+                
                 recommendations = recommender.get_recommendations(
                     bmi_category=bmi_category,
-                    activity_level=activity_level,
+                    activity_level=activity_level_str,
                     diet_preference=diet_preference if diet_preference else 'No preference',
                     n_recommendations=5
                 )
@@ -223,7 +233,7 @@ if submit:
                 with cols[0]:
                     st.metric("BMI Category", bmi_category)
                 with cols[1]:
-                    st.metric("Activity Level", activity_level)
+                    st.metric("Activity Level", activity_level_str.title())
                 with cols[2]:
                     st.metric("Diet Preference", diet_preference if diet_preference else 'No preference')
                 
