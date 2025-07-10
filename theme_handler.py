@@ -250,30 +250,44 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
         color: var(--text-color) !important;
     }}
     
+    /* Main App Background - Critical Fix */
+    body, .stApp, .main, .block-container, .stApp > div, 
+    .stApp > div > div, .stApp > div > div > div, 
+    .stApp > div > div > div > div, .stApp > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div > div > div > div {{
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+    }}
+    
     /* Main Content Text - Global */
     .stApp,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stMarkdown, .stMarkdown p, .stMarkdown div, .stMarkdown span,
     .stAlert, .stAlert p, .stAlert div,
     .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4,
-    .stMarkdown h5, .stMarkdown h6 {
+    .stMarkdown h5, .stMarkdown h6 {{
         color: var(--text-color) !important;
-    }
+    }}
     
     /* BMI and Calorie Results - Specific Fixes */
     .stMetric, .stMetricLabel, .stMetricValue, .stMetricDelta,
     .stMetricLabel p, .stMetricValue p, .stMetricDelta p,
-    .stMetricLabel div, .stMetricValue div, .stMetricDelta div {
+    .stMetricLabel div, .stMetricValue div, .stMetricDelta div {{
         color: var(--text-color) !important;
-    }
+    }}
     
     /* Cards and Containers */
-    .stTabs [data-baseweb="tab-list"] {
+    .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
         background-color: var(--secondary-bg) !important;
-    }
+    }}
     
-    .stTabs [data-baseweb="tab"] {
+    .stTabs [data-baseweb="tab"] {{
         height: 50px;
         white-space: pre;
         background-color: var(--tertiary-bg);
@@ -283,33 +297,58 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
         margin-right: 4px;
         margin-left: 4px;
         color: var(--text-color) !important;
-    }
+    }}
     
-    .stTabs [aria-selected="true"] {
+    .stTabs [aria-selected="true"] {{
         background-color: var(--accent-color) !important;
         color: white !important;
-    }
+    }}
     
     /* Result Sections - Specific Elements */
     .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
-    .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+    .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {{
         color: var(--text-color) !important;
         margin-top: 1.5rem !important;
         margin-bottom: 1rem !important;
-    }
+    }}
     
     /* Metrics and Results Containers */
     .stAlert, .stAlert p, .stAlert div,
     .stMarkdown, .stMarkdown p, .stMarkdown div,
     .stDataFrame, .stDataFrame th, .stDataFrame td,
-    .element-container, .stMarkdownContainer {
+    .element-container, .stMarkdownContainer {{
         color: var(--text-color) !important;
-    }
+    }}
     
     /* Fix for any remaining text elements */
-    .stApp *:not(button):not(input):not(select):not(textarea):not(svg):not(path) {
+    .stApp *:not(button):not(input):not(select):not(textarea):not(svg):not(path):not([class*="st-"]) {{
         color: var(--text-color) !important;
-    }
+    }}
+    
+    /* Ensure hero section is visible */
+    .stApp > div > div > div > div > div > div > div > div > div > div > div > h1,
+    .stApp > div > div > div > div > div > div > div > div > div > div > div > p {{
+        color: var(--text-color) !important;
+    }}
+    
+    /* Fix for all content containers */
+    .main .block-container,
+    .main .stContainer,
+    .main .element-container,
+    .main .stMarkdown,
+    .main .stMarkdown p,
+    .stApp > div > div > div > div > div > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
+    .stApp > div > div > div > div > div > div > div > div > div > div > div > div > div > div > div {{
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+    }}
+    
+    /* Ensure all text is visible */
+    .stApp *:not(button):not(input):not(select):not(textarea):not(svg):not(path) {{
+        color: var(--text-color) !important;
+    }}
     </style>
     """
 
