@@ -14,9 +14,13 @@ def get_theme_vars(theme: str) -> Dict[str, str]:
             'secondary-bg': '#1E1E1E',
             'tertiary-bg': '#333333',
             'text-color': '#FFFFFF',
+            'dietary-text': '#FFFFFF',  # White text for dark mode
             'accent-color': '#4CAF50',
             'border-color': '#555555',
             'card-bg': '#252525',
+            'select-bg': '#1E1E1E',  # Dark background for select box
+            'menu-bg': '#333333',    # Dark background for dropdown menu
+            'menu-text': '#FFFFFF',   # White text for menu items
         },
         'Light Mode': {
             'primary-bg': '#FFFFFF',
@@ -24,6 +28,7 @@ def get_theme_vars(theme: str) -> Dict[str, str]:
             'tertiary-bg': '#E9ECEF',
             'text-color': '#212529',
             'label-color': '#212529',  # Darker for better contrast
+            'dietary-text': '#212529', # Dark text for better contrast on light background
             'text-muted': '#6c757d',
             'accent-color': '#0D6EFD',
             'border-color': '#CED4DA',
@@ -32,7 +37,10 @@ def get_theme_vars(theme: str) -> Dict[str, str]:
             'success': '#198754',
             'warning': '#FFC107',
             'danger': '#DC3545',
-            'info': '#0DCAF0'
+            'info': '#0DCAF0',
+            'select-bg': '#FFFFFF',   # White background for select box
+            'menu-bg': '#FFFFFF',     # White background for dropdown menu
+            'menu-text': '#212529',   # Dark text for menu items
         }
     }
     return themes.get(theme, themes['Light Mode'])
@@ -46,14 +54,39 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
         --secondary-bg: {theme_vars['secondary-bg']};
         --tertiary-bg: {theme_vars['tertiary-bg']};
         --text-color: {theme_vars['text-color']};
+        --dietary-text: {theme_vars.get('dietary-text', theme_vars['text-color'])};
         --accent-color: {theme_vars['accent-color']};
         --border-color: {theme_vars['border-color']};
+        --select-bg: {theme_vars.get('select-bg', theme_vars['primary-bg'])};
+        --menu-bg: {theme_vars.get('menu-bg', theme_vars['card-bg'])};
+        --menu-text: {theme_vars.get('menu-text', theme_vars['text-color'])};
+        
         --card-bg: {theme_vars['card-bg']};
         --text-muted: {theme_vars.get('text-muted', '#6C757D')};
         --success: {theme_vars.get('success', '#198754')};
         --warning: {theme_vars.get('warning', '#FFC107')};
         --danger: {theme_vars.get('danger', '#DC3545')};
         --info: {theme_vars.get('info', '#0DCAF0')};
+    }}
+    
+    /* Dietary preference dropdown - THEME ADAPTIVE */
+    .dietary-preference .stSelectbox div[data-baseweb="select"] > div {{
+        background-color: var(--select-bg) !important;
+        color: var(--dietary-text) !important;
+        border: 1px solid var(--border-color) !important;
+    }}
+    
+    .dietary-preference [data-baseweb="popover"] div[role='listbox'] {{
+        background-color: var(--menu-bg) !important;
+    }}
+    
+    .dietary-preference [data-baseweb="popover"] div[role='option'] {{
+        color: var(--menu-text) !important;
+        background-color: var(--menu-bg) !important;
+    }}
+    
+    .dietary-preference [data-baseweb="popover"] div[role='option']:hover {{
+        background-color: var(--tertiary-bg) !important;
     }}
     
     /* Base styles */
@@ -269,8 +302,8 @@ def get_theme_css(theme_vars: Dict[str, str]) -> str:
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stMarkdown, .stMarkdown p, .stMarkdown div, .stMarkdown span,
     .stAlert, .stAlert p, .stAlert div,
-    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4,
-    .stMarkdown h5, .stMarkdown h6 {{
+    .stDataFrame, .stDataFrame th, .stDataFrame td,
+    .element-container, .stMarkdownContainer {{
         color: var(--text-color) !important;
     }}
     

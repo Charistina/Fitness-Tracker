@@ -1,9 +1,6 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-import time
 from ml_food_recommender import MLFoodRecommender
 from theme_handler import init_session_state, apply_theme
 import warnings
@@ -13,7 +10,7 @@ warnings.filterwarnings('ignore')
 # Initialize session state and apply theme
 init_session_state()
 
-# Set page config after theme initialization
+# Set page config
 st.set_page_config(
     page_title="Personal Fitness Tracker", 
     layout="wide",
@@ -36,58 +33,59 @@ with st.sidebar:
 with st.container():
     col1, col2 = st.columns([1, 3])
     with col1:
-        st.image("https://cdn-icons-png.flaticon.com/512/2936/2936886.png", width=100)  # Default fitness icon
+        st.image("https://cdn-icons-png.flaticon.com/512/2936/2936886.png", width=100)
     with col2:
         st.title("Personal Fitness Tracker")
         st.caption("Predict your calories burned and get personalized nutrition recommendations")
 
 st.sidebar.header("User Input Parameters")
 
-@st.cache_resource(ttl=3600)  # Cache for 1 hour
+@st.cache_resource(ttl=3600)
 def load_model():
     try:
-        # Load data with error handling
         calories = pd.read_csv("calories.csv")
         exercise = pd.read_csv("exercise.csv")
         
-        # Basic data validation
         if len(calories) == 0 or len(exercise) == 0:
-            raise ValueError("One or more data files are empty")
+            raise ValueError("Data files are empty")
             
-        # Merge and preprocess
         exercise_df = exercise.merge(calories, on="User_ID").drop(columns="User_ID")
         exercise_df["BMI"] = round(exercise_df["Weight"] / ((exercise_df["Height"] / 100) ** 2), 2)
         exercise_df["Gender"] = exercise_df["Gender"].map({"Male": 1, "Female": 0})
         exercise_df = pd.get_dummies(exercise_df, columns=["Activity_Level"], drop_first=True)
         
-        # Train model
         X_train = exercise_df.drop("Calories", axis=1)
         y_train = exercise_df["Calories"]
         
-        # Use a smaller model for faster predictions
         model = RandomForestRegressor(
-            n_estimators=200,  # Reduced from 1000 for faster training
+            n_estimators=200,
             max_features=3,
             max_depth=6,
-            n_jobs=-1,  # Use all CPU cores
+            n_jobs=-1,
             random_state=42
         )
         model.fit(X_train, y_train)
         return model
         
     except FileNotFoundError as e:
-        st.error(f"Error loading data files: {e}")
+        st.error(f"Data file missing: {e}")
         st.stop()
     except Exception as e:
-        st.error(f"Error initializing model: {e}")
+        st.error(f"Model initialization failed: {e}")
         st.stop()
 
 def validate_inputs(age, height, weight, duration):
+    errors = []
     if height < 100 or height > 250:
-        st.error("Please enter a valid height between 100cm and 250cm")
-        return False
+        errors.append("Height must be between 100cm and 250cm")
     if weight < 30 or weight > 200:
-        st.error("Please enter a valid weight between 30kg and 200kg")
+        errors.append("Weight must be between 30kg and 200kg")
+    if duration <= 0:
+        errors.append("Exercise duration must be greater than 0")
+    
+    if errors:
+        for error in errors:
+            st.error(error)
         return False
     return True
 
@@ -115,11 +113,18 @@ def user_input_features():
         blood_oxygen = st.number_input("Blood Oxygen Level (%):", min_value=70, max_value=100, value=98, step=1) if tracker else 0
         water_intake = st.number_input("Water Intake (liters):", min_value=0.0, max_value=10.0, value=2.0, step=0.1)
         
+        # CORRECTED: Define food_suggestions first
         food_suggestions = st.checkbox("Do you want food suggestions?")
+        
+        # Now use it to conditionally show the dropdown
         if food_suggestions:
-            diet_preference = st.selectbox("Select your dietary preference:", 
-                                         ["Vegetarian", "Vegan", "Non-Vegetarian", "Eggitarian", 
-                                          "Gluten-Free", "Keto", "Paleo", "Mediterranean", "Other"])
+            st.markdown('<div class="dietary-preference">', unsafe_allow_html=True)
+            diet_preference = st.selectbox(
+                "Select your dietary preference:",
+                ["Vegetarian", "Vegan", "Non-Vegetarian", "Eggitarian", 
+                 "Gluten-Free", "Keto", "Paleo", "Mediterranean", "Other"]
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             diet_preference = None
         
@@ -204,22 +209,16 @@ if submit:
             st.progress(min(int(df['Duration'].values[0]/120*100), 100))
             st.caption(f"Based on {df['Duration'].values[0]} minutes of activity")
         
-     
         if food_suggestions:
             with st.expander("🍽️ Personalized Food Recommendations", expanded=True):
-                # Initialize the ML food recommender
                 recommender = MLFoodRecommender()
                 
-                # Get the selected activity level from the input form
-                user_activity_level = df['Activity_Level'].values[0]
-                
-                # Map the activity level to a more descriptive string
                 activity_mapping = {
                     'No activity': 'sedentary',
                     'Light walking': 'light',
                     'Regular exercise': 'moderate'
                 }
-                activity_level_str = activity_mapping.get(user_activity_level, 'moderate')
+                activity_level_str = activity_mapping.get(df['Activity_Level'].values[0], 'moderate')
                 
                 recommendations = recommender.get_recommendations(
                     bmi_category=bmi_category,
@@ -240,7 +239,6 @@ if submit:
                 st.markdown("---")
                 st.subheader("🍽️ Recommended Meals")
                 
-                # Display recommendations in a grid
                 for i, rec in enumerate(recommendations['recommendations'], 1):
                     with st.container():
                         col1, col2 = st.columns([2, 3])
@@ -249,7 +247,6 @@ if submit:
                             st.caption(f"**Meal Type:** {rec['meal_type'].title()}")
                         
                         with col2:
-                            # Display nutrition information
                             nut = rec['nutrition']
                             st.markdown("**Nutrition per serving:**")
                             nut_cols = st.columns(4)
@@ -261,7 +258,6 @@ if submit:
                     if i < len(recommendations['recommendations']):
                         st.markdown("---")
                 
-                # Add some nutrition tips based on BMI
                 st.markdown("---")
                 st.subheader("💡 Nutrition Tips")
                 
